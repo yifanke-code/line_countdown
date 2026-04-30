@@ -1,0 +1,5 @@
+2026/05/01-00:09:00.680 4854 Reusing MANIFEST c:\GitHub\whatsapp_countdown\whatsapp_data\Default\Local Storage\leveldb/MANIFEST-000001
+2026/05/01-00:09:00.689 4854 Recovering log #26
+2026/05/01-00:09:00.689 4854 Level-0 table #28: started
+2026/05/01-00:09:00.698 4854 Level-0 table #28: 16121 bytes OK
+2026/05/01-00:09:00.708 4854 Delete type=0 #26

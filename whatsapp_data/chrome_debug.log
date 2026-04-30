@@ -1,0 +1,30 @@
+[8792:27620:0418/114501.147:INFO:components\enterprise\browser\controller\chrome_browser_cloud_management_controller.cc:238] No machine level policy manager exists.
+[16280:6568:0418/114501.232:INFO:third_party\webrtc\rtc_base\cpu_info.cc:77] Available number of cores: 22
+[22004:18984:0418/114501.240:INFO:third_party\webrtc\rtc_base\cpu_info.cc:77] Available number of cores: 22
+[23840:31144:0418/114501.415:VERBOSE1:components\viz\service\main\viz_main_impl.cc:86] VizNullHypothesis is disabled (not a warning)
+[31080:26876:0418/114501.495:INFO:third_party\webrtc\rtc_base\cpu_info.cc:77] Available number of cores: 22
+[34256:34668:0418/114501.535:INFO:third_party\webrtc\rtc_base\cpu_info.cc:77] Available number of cores: 22
+[12188:4636:0418/114501.549:INFO:third_party\webrtc\rtc_base\cpu_info.cc:77] Available number of cores: 22
+[21272:33776:0418/114501.913:INFO:third_party\webrtc\rtc_base\cpu_info.cc:77] Available number of cores: 22
+[8792:27620:0418/114501.926:INFO:CONSOLE:185] "Event handler of 'x-storagemutated-1' event must be added on the initial evaluation of worker script.", source: https://static.whatsapp.net/rsrc.php/v4/yI/r/6bsXYO_9Pko.js (185)
+[8792:27620:0418/114503.305:INFO:CONSOLE:170] "The PerformanceObserver does not support buffered flag with the entryTypes argument.", source: https://static.whatsapp.net/rsrc.php/v4/yY/r/F3Bh_vg1DviLWMP-XotM2KHTEFngCYwvvPbjCpseDapUrBGl1VNl-DEa_zHNlDMhh_CeeUTDH2pdaN2BaG9ISuhoe0qnL2dG90HwJ34wthXfB3u63lw_MkRQA.js (170)
+[8792:27620:0418/114505.325:INFO:CONSOLE:79] "ErrorUtils caught an error:
+
+Converting to a string will drop content data. Hash="undefined" Translation="你已新增{names}" Content="Context not logged." (type=object,Object)
+
+Subsequent non-fatal errors won't be logged; see https://fburl.com/debugjs. [object Object]", source: https://static.whatsapp.net/rsrc.php/v4/yn/r/1Rk4BX8YPYQ.js (79)
+[8792:24504:0418/114508.631:ERROR:google_apis\gcm\engine\registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[8792:27620:0418/114509.383:INFO:CONSOLE:185] "Event handler of 'x-storagemutated-1' event must be added on the initial evaluation of worker script.", source: https://static.whatsapp.net/rsrc.php/v4/yI/r/6bsXYO_9Pko.js (185)
+[8792:27620:0418/114514.054:INFO:CONSOLE:170] "The PerformanceObserver does not support buffered flag with the entryTypes argument.", source: https://static.whatsapp.net/rsrc.php/v4/yY/r/F3Bh_vg1DviLWMP-XotM2KHTEFngCYwvvPbjCpseDapUrBGl1VNl-DEa_zHNlDMhh_CeeUTDH2pdaN2BaG9ISuhoe0qnL2dG90HwJ34wthXfB3u63lw_MkRQA.js (170)
+[8792:27620:0418/114516.520:INFO:CONSOLE:79] "ErrorUtils caught an error:
+
+Converting to a string will drop content data. Hash="undefined" Translation="你已新增{names}" Content="Context not logged." (type=object,Object)
+
+Subsequent non-fatal errors won't be logged; see https://fburl.com/debugjs. [object Object]", source: https://static.whatsapp.net/rsrc.php/v4/yn/r/1Rk4BX8YPYQ.js (79)
+[8792:27620:0418/114526.784:INFO:CONSOLE:0] "Access to fetch at 'https://dit.whatsapp.net/deidentified_telemetry' from origin 'https://web.whatsapp.com' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.", source: https://web.whatsapp.com/ (0)
+[8792:27620:0418/114527.244:INFO:CONSOLE:0] "Access to fetch at 'https://dit.whatsapp.net/deidentified_telemetry' from origin 'https://web.whatsapp.com' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.", source: https://web.whatsapp.com/ (0)
+[8792:27620:0418/114527.968:INFO:CONSOLE:0] "Access to fetch at 'https://dit.whatsapp.net/deidentified_telemetry' from origin 'https://web.whatsapp.com' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.", source: https://web.whatsapp.com/ (0)
+[8792:27620:0418/114529.252:INFO:CONSOLE:0] "Access to fetch at 'https://dit.whatsapp.net/deidentified_telemetry' from origin 'https://web.whatsapp.com' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.", source: https://web.whatsapp.com/ (0)
+[8792:24504:0418/114533.971:ERROR:google_apis\gcm\engine\registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[2072:18316:0418/114547.412:WARNING:net\extras\sqlite\sqlite_persistent_store_backend_base.cc:176] Failed to post task from FlushAndNotifyInBackground@net\extras\sqlite\sqlite_persistent_store_backend_base.cc:226 to client_task_runner_.
+[2072:18316:0418/114547.412:WARNING:net\extras\sqlite\sqlite_persistent_store_backend_base.cc:176] Failed to post task from FlushAndNotifyInBackground@net\extras\sqlite\sqlite_persistent_store_backend_base.cc:226 to client_task_runner_.

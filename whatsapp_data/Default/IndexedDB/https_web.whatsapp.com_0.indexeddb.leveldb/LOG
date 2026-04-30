@@ -1,0 +1,33 @@
+2026/05/01-00:09:01.731 4db8 Reusing MANIFEST c:\GitHub\whatsapp_countdown\whatsapp_data\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/MANIFEST-000001
+2026/05/01-00:09:01.733 4db8 Recovering log #206
+2026/05/01-00:09:01.807 4db8 Reusing old log c:\GitHub\whatsapp_countdown\whatsapp_data\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/000206.log 
+2026/05/01-00:09:01.808 4db8 Delete type=2 #202
+2026/05/01-00:09:01.808 4db8 Delete type=2 #203
+2026/05/01-00:09:01.808 4db8 Delete type=2 #204
+2026/05/01-00:09:01.809 4db8 Delete type=2 #207
+2026/05/01-00:09:05.405 4db8 Level-0 table #213: started
+2026/05/01-00:09:05.451 4db8 Level-0 table #213: 1178537 bytes OK
+2026/05/01-00:09:05.454 4db8 Delete type=0 #206
+2026/05/01-00:09:06.798 464c Compacting 1@1 + 3@2 files
+2026/05/01-00:09:06.950 464c Generated table #214@1: 82776 keys, 2231227 bytes
+2026/05/01-00:09:07.029 464c Generated table #215@1: 51793 keys, 2285798 bytes
+2026/05/01-00:09:07.041 464c Generated table #216@1: 7910 keys, 417038 bytes
+2026/05/01-00:09:07.041 464c Compacted 1@1 + 3@2 files => 4934063 bytes
+2026/05/01-00:09:07.043 464c compacted to: files[ 0 0 3 0 0 0 0 ]
+2026/05/01-00:09:07.043 464c Delete type=2 #208
+2026/05/01-00:09:07.043 464c Delete type=2 #209
+2026/05/01-00:09:07.043 464c Delete type=2 #210
+2026/05/01-00:09:07.043 464c Delete type=2 #213
+2026/05/01-00:09:42.040 4db8 Level-0 table #218: started
+2026/05/01-00:09:42.114 4db8 Level-0 table #218: 1186718 bytes OK
+2026/05/01-00:09:42.117 4db8 Delete type=0 #212
+2026/05/01-00:09:53.773 4db8 Compacting 1@1 + 3@2 files
+2026/05/01-00:09:53.898 4db8 Generated table #219@1: 83170 keys, 2232734 bytes
+2026/05/01-00:09:53.979 4db8 Generated table #220@1: 52078 keys, 2289388 bytes
+2026/05/01-00:09:53.996 4db8 Generated table #221@1: 9199 keys, 457569 bytes
+2026/05/01-00:09:53.996 4db8 Compacted 1@1 + 3@2 files => 4979691 bytes
+2026/05/01-00:09:53.998 4db8 compacted to: files[ 0 0 3 0 0 0 0 ]
+2026/05/01-00:09:53.998 4db8 Delete type=2 #214
+2026/05/01-00:09:53.999 4db8 Delete type=2 #215
+2026/05/01-00:09:54.000 4db8 Delete type=2 #216
+2026/05/01-00:09:54.000 4db8 Delete type=2 #218
