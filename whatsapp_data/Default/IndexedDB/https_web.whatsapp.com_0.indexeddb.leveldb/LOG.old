@@ -1,16 +1,24 @@
-2026/04/30-23:59:01.507 43f8 Reusing MANIFEST c:\GitHub\whatsapp_countdown\whatsapp_data\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/MANIFEST-000001
-2026/04/30-23:59:01.508 43f8 Recovering log #200
-2026/04/30-23:59:01.582 43f8 Reusing old log c:\GitHub\whatsapp_countdown\whatsapp_data\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/000200.log 
-2026/04/30-23:59:01.583 43f8 Delete type=2 #196
-2026/04/30-23:59:01.583 43f8 Delete type=2 #197
-2026/04/30-23:59:01.583 43f8 Delete type=2 #198
-2026/04/30-23:59:01.583 43f8 Delete type=2 #201
-2026/04/30-23:59:05.416 43f8 Level-0 table #207: started
-2026/04/30-23:59:05.513 43f8 Level-0 table #207: 1157092 bytes OK
-2026/04/30-23:59:05.518 43f8 Delete type=0 #200
-2026/04/30-23:59:06.413 43f8 Compacting 1@1 + 3@2 files
-2026/04/30-23:59:06.520 43f8 Generated table #208@1: 82477 keys, 2232619 bytes
-2026/04/30-23:59:06.627 43f8 Generated table #209@1: 51964 keys, 2283568 bytes
-2026/04/30-23:59:06.646 43f8 Generated table #210@1: 7539 keys, 405775 bytes
-2026/04/30-23:59:06.646 43f8 Compacted 1@1 + 3@2 files => 4921962 bytes
-2026/04/30-23:59:06.648 43f8 compacted to: files[ 0 0 3 0 0 0 0 ]
+2026/05/26-20:32:01.911 a0c4 Reusing MANIFEST c:\GitHub\whatsapp_countdown\whatsapp_data\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/MANIFEST-000001
+2026/05/26-20:32:01.911 a0c4 Recovering log #666
+2026/05/26-20:32:01.912 a0c4 Reusing old log c:\GitHub\whatsapp_countdown\whatsapp_data\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/000666.log 
+2026/05/26-20:32:02.329 5844 Compacting 1@1 + 7@2 files
+2026/05/26-20:32:02.372 5844 Generated table #669@1: 80736 keys, 2229142 bytes
+2026/05/26-20:32:02.497 5844 Generated table #670@1: 98927 keys, 2250310 bytes
+2026/05/26-20:32:02.623 5844 Generated table #671@1: 40162 keys, 2366055 bytes
+2026/05/26-20:32:02.635 5844 Generated table #672@1: 4757 keys, 2128285 bytes
+2026/05/26-20:32:02.643 5844 Generated table #673@1: 128 keys, 2128067 bytes
+2026/05/26-20:32:02.653 5844 Generated table #674@1: 128 keys, 2127963 bytes
+2026/05/26-20:32:02.657 5844 Generated table #675@1: 4848 keys, 227432 bytes
+2026/05/26-20:32:02.657 5844 Compacted 1@1 + 7@2 files => 13457254 bytes
+2026/05/26-20:32:02.658 5844 compacted to: files[ 0 0 7 0 0 0 0 ]
+2026/05/26-20:32:02.658 5844 Delete type=2 #659
+2026/05/26-20:32:02.658 5844 Delete type=2 #660
+2026/05/26-20:32:02.658 5844 Delete type=2 #661
+2026/05/26-20:32:02.658 5844 Delete type=2 #662
+2026/05/26-20:32:02.658 5844 Delete type=2 #663
+2026/05/26-20:32:02.658 5844 Delete type=2 #664
+2026/05/26-20:32:02.658 5844 Delete type=2 #665
+2026/05/26-20:32:02.658 5844 Delete type=2 #667
+2026/05/26-20:32:52.601 5844 Level-0 table #677: started
+2026/05/26-20:32:52.617 5844 Level-0 table #677: 1233919 bytes OK
+2026/05/26-20:32:52.624 5844 Delete type=0 #666

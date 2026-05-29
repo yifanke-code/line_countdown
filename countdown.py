@@ -1,62 +1,50 @@
 import sys
-import urllib.parse
 import threading
+import os
 from datetime import datetime, timedelta
-from PyQt6.QtWidgets import (QApplication, QWidget, QLabel, QPushButton, 
-                             QVBoxLayout, QLineEdit, QHBoxLayout, QComboBox, QRadioButton, QButtonGroup)
-from PyQt6.QtCore import QTimer, QDateTime, QDate
+from zoneinfo import ZoneInfo
+from PyQt6.QtWidgets import (QApplication, QWidget, QLabel, QPushButton,
+                             QVBoxLayout, QLineEdit, QHBoxLayout, QCheckBox)
+from PyQt6.QtCore import QTimer, QDateTime
 from PyQt6.QtGui import QPalette, QColor
 from PyQt6.QtCore import Qt
 
-TIMEZONES = {
-    # UTC-12 至 UTC-8
-    "斐濟 (UTC+12)": "Pacific/Fiji",
-    "紐西蘭 (UTC+12)": "Pacific/Auckland",
-    "雪梨 (UTC+10)": "Australia/Sydney",
-    "東京 (UTC+9)": "Asia/Tokyo",
-    "首爾 (UTC+9)": "Asia/Seoul",
-    "香港 (UTC+8)": "Asia/Hong_Kong",
-    "台北 (UTC+8)": "Asia/Taipei",
-    "新加坡 (UTC+8)": "Asia/Singapore",
-    "上海 (UTC+8)": "Asia/Shanghai",
-    "曼谷 (UTC+7)": "Asia/Bangkok",
-    "吉隆坡 (UTC+8)": "Asia/Kuala_Lumpur",
-    "伊斯坦堡 (UTC+3)": "Europe/Istanbul",
-    "杜拜 (UTC+4)": "Asia/Dubai",
-    "卡拉奇 (UTC+5)": "Asia/Karachi",
-    "加爾各答 (UTC+5:30)": "Asia/Kolkata",
-    "開羅 (UTC+2)": "Africa/Cairo",
-    "約翰內斯堡 (UTC+2)": "Africa/Johannesburg",
-    "莫斯科 (UTC+3)": "Europe/Moscow",
-    "巴黎 (UTC+1)": "Europe/Paris",
-    "柏林 (UTC+1)": "Europe/Berlin",
-    "倫敦 (UTC+0)": "Europe/London",
-    "里斯本 (UTC+0)": "Europe/Lisbon",
-    "聖保羅 (UTC-3)": "America/Sao_Paulo",
-    "紐約 (UTC-5)": "America/New_York",
-    "多倫多 (UTC-5)": "America/Toronto",
-    "墨西哥城 (UTC-6)": "America/Mexico_City",
-    "洛杉磯 (UTC-8)": "America/Los_Angeles",
-    "檀香山 (UTC-10)": "Pacific/Honolulu",
+# LINE recipients configuration (user_id: display_name)
+# Replace these with actual LINE user IDs
+LINE_RECIPIENTS = {
+    "U62f156ab5afd221576ea85039ac4ed21": "Evan",
+    "U2345678901bcdef2345678901bcdef1": "Person 2",
+    "Ca1234567890abcdef1234567890abc": "Group Chat 1",
 }
 
-HOURS = [f"{i:02d}" for i in range(24)]
-MINUTES = [f"{i:02d}" for i in range(60)]
+# Timezone abbreviation mapping
+TZ_MAP = {
+    'CDT': 'America/Chicago',
+    'CST': 'America/Chicago',
+    'EDT': 'America/New_York',
+    'EST': 'America/New_York',
+    'PDT': 'America/Los_Angeles',
+    'PST': 'America/Los_Angeles',
+    'GMT': 'UTC',
+    'UTC': 'UTC',
+    'JST': 'Asia/Tokyo',
+    'IST': 'Asia/Kolkata',
+    'SGT': 'Asia/Singapore',
+    'HKT': 'Asia/Hong_Kong',
+}
 
 class CountdownWindow(QWidget):
     def __init__(self):
         super().__init__()
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_countdown)
-        self.last_notification_time = 0
-        self.notification_count = 0
-        self.sent_notifications = set()  # 記錄已發送的通知編號
-        self.whatsapp_driver = None
+        self.sent_notifications = set()
+        self.selected_recipients = set()
         self.init_ui()
 
     def init_ui(self):
-        self.setWindowTitle("倒數計時")
-        self.setFixedSize(900, 650)
+        self.setWindowTitle("LINE 倒數計時")
+        self.setFixedSize(900, 750)
 
         palette = QPalette()
         palette.setColor(QPalette.ColorRole.Window, QColor(30, 30, 30))
@@ -66,41 +54,32 @@ class CountdownWindow(QWidget):
         main_layout.setSpacing(20)
         main_layout.setContentsMargins(40, 40, 40, 40)
 
-        title = QLabel("倒數計時")
+        title = QLabel("LINE 倒數計時")
         title.setStyleSheet("color: white; font-size: 28px; font-weight: bold;")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         main_layout.addWidget(title)
 
+        # Timezone input
         tz_layout = QHBoxLayout()
         tz_layout.addWidget(QLabel("時區:"))
-        self.tz_combo = QComboBox()
-        self.tz_combo.addItems(TIMEZONES.keys())
-        self.tz_combo.setStyleSheet("font-size: 16px; padding: 8px;")
-        self.tz_combo.setFixedWidth(200)
-        tz_layout.addWidget(self.tz_combo)
-        tz_layout.addWidget(QLabel("日期:"))
-        self.date_combo = QComboBox()
-        today = QDate.currentDate()
-        for i in range(30):
-            d = today.addDays(i)
-            self.date_combo.addItem(d.toString("yyyy-MM-dd"))
-        self.date_combo.setStyleSheet("font-size: 16px; padding: 8px;")
-        self.date_combo.setFixedWidth(150)
-        tz_layout.addWidget(self.date_combo)
-        tz_layout.addWidget(QLabel("時:"))
-        self.hour_combo = QComboBox()
-        self.hour_combo.addItems(HOURS)
-        self.hour_combo.setStyleSheet("font-size: 16px; padding: 8px;")
-        self.hour_combo.setFixedWidth(80)
-        tz_layout.addWidget(self.hour_combo)
-        tz_layout.addWidget(QLabel("分:"))
-        self.minute_combo = QComboBox()
-        self.minute_combo.addItems(MINUTES)
-        self.minute_combo.setStyleSheet("font-size: 16px; padding: 8px;")
-        self.minute_combo.setFixedWidth(80)
-        tz_layout.addWidget(self.minute_combo)
+        self.tz_input = QLineEdit()
+        self.tz_input.setPlaceholderText("如: CDT, EST, UTC-3, Asia/Taipei")
+        self.tz_input.setStyleSheet("font-size: 16px; padding: 8px;")
+        self.tz_input.setFixedWidth(250)
+        tz_layout.addWidget(self.tz_input)
         tz_layout.addStretch()
         main_layout.addLayout(tz_layout)
+
+        # DateTime input (10-digit format)
+        time_layout = QHBoxLayout()
+        time_layout.addWidget(QLabel("日期時間:"))
+        self.datetime_input = QLineEdit()
+        self.datetime_input.setPlaceholderText("10位數 (例: 2605201722 => 2026/05/20 17:22)")
+        self.datetime_input.setStyleSheet("font-size: 16px; padding: 8px;")
+        self.datetime_input.setFixedWidth(300)
+        time_layout.addWidget(self.datetime_input)
+        time_layout.addStretch()
+        main_layout.addLayout(time_layout)
 
         self.message_input = QLineEdit()
         self.message_input.setPlaceholderText("輸入通知主題")
@@ -108,28 +87,25 @@ class CountdownWindow(QWidget):
         self.message_input.setFixedWidth(400)
         main_layout.addWidget(self.message_input, alignment=Qt.AlignmentFlag.AlignCenter)
 
-        phone_layout = QHBoxLayout()
-        phone_layout.addWidget(QLabel("WhatsApp:"))
-        phone_layout.addSpacing(10)
-        
-        self.phone_group = QButtonGroup()
-        self.phone_radio1 = QRadioButton("+886922555330")
-        self.phone_radio2 = QRadioButton("+886935742667")
-        self.phone_radio1.setStyleSheet("color: white; font-size: 16px;")
-        self.phone_radio2.setStyleSheet("color: white; font-size: 16px;")
-        self.phone_radio1.setChecked(True)
-        
-        self.phone_group.addButton(self.phone_radio1)
-        self.phone_group.addButton(self.phone_radio2)
-        
-        phone_layout.addWidget(self.phone_radio1)
-        phone_layout.addWidget(self.phone_radio2)
-        phone_layout.addStretch()
-        main_layout.addLayout(phone_layout)
+        # LINE recipient selection
+        recipient_label = QLabel("LINE 接收對象:")
+        recipient_label.setStyleSheet("color: white; font-size: 14px;")
+        main_layout.addWidget(recipient_label)
+
+        recipient_layout = QHBoxLayout()
+        recipient_layout.setSpacing(15)
+        self.recipient_checkboxes = {}
+        for user_id, display_name in LINE_RECIPIENTS.items():
+            checkbox = QCheckBox(display_name)
+            checkbox.setStyleSheet("color: white; font-size: 14px;")
+            self.recipient_checkboxes[user_id] = checkbox
+            recipient_layout.addWidget(checkbox)
+        recipient_layout.addStretch()
+        main_layout.addLayout(recipient_layout)
 
         btn_layout = QHBoxLayout()
         self.start_btn = QPushButton("開始倒數")
-        self.start_btn.setStyleSheet("font-size: 18px; padding: 12px 40px; background: #007bff; color: white;")
+        self.start_btn.setStyleSheet("font-size: 18px; padding: 12px 40px; background: #00b900; color: white;")
         self.start_btn.clicked.connect(self.start_countdown)
         btn_layout.addWidget(self.start_btn)
 
@@ -158,11 +134,61 @@ class CountdownWindow(QWidget):
 
         self.setLayout(main_layout)
 
-    def get_selected_phone(self):
-        if self.phone_radio1.isChecked():
-            return "+886922555330"
-        else:
-            return "+886935742667"
+    def get_selected_recipients(self):
+        recipients = []
+        for user_id, checkbox in self.recipient_checkboxes.items():
+            if checkbox.isChecked():
+                recipients.append(user_id)
+        return recipients
+
+    def parse_timezone(self, tz_str):
+        """Parse timezone string (CDT, UTC-3, Asia/Taipei, etc.)"""
+        tz_str = tz_str.strip().upper()
+
+        # Check abbreviation mapping
+        if tz_str in TZ_MAP:
+            return ZoneInfo(TZ_MAP[tz_str])
+
+        # Handle UTC±X format
+        if tz_str.startswith('UTC'):
+            offset_str = tz_str[3:]
+            if offset_str:
+                try:
+                    offset = int(offset_str)
+                    if offset == 0:
+                        return ZoneInfo('UTC')
+                    # Create a fixed offset timezone
+                    from datetime import timezone
+                    return timezone(timedelta(hours=offset))
+                except:
+                    return None
+            return ZoneInfo('UTC')
+
+        # Try as IANA timezone
+        try:
+            return ZoneInfo(tz_str)
+        except:
+            return None
+
+    def parse_datetime_10digit(self, date_str, tz_info):
+        """Parse 10-digit datetime string (YYMMDDHHMI)"""
+        date_str = date_str.strip()
+        if len(date_str) != 10 or not date_str.isdigit():
+            return None
+
+        try:
+            yy = int(date_str[0:2])
+            mm = int(date_str[2:4])
+            dd = int(date_str[4:6])
+            hh = int(date_str[6:8])
+            mi = int(date_str[8:10])
+
+            # Assume 20YY for 2-digit year
+            year = 2000 + yy
+
+            return datetime(year, mm, dd, hh, mi, 0, tzinfo=tz_info)
+        except:
+            return None
 
     def calculate_notify_times(self):
         target_dt = datetime.fromtimestamp(self.target_time / 1000)
@@ -181,170 +207,83 @@ class CountdownWindow(QWidget):
 
         return times_str
 
-    def send_whatsapp_initial(self, message):
-        phone = self.get_selected_phone()
-        phone = phone.replace("+", "").replace(" ", "").replace("-", "")
-        thread = threading.Thread(target=self.send_whatsapp_initial_thread, args=(phone, message))
+    def send_line_message(self, user_id, message):
+        thread = threading.Thread(target=self.send_line_message_thread, args=(user_id, message))
         thread.daemon = True
         thread.start()
 
-    def send_whatsapp_initial_thread(self, phone, message):
-        import os
+    def send_line_message_thread(self, user_id, message):
         try:
-            from selenium import webdriver
-            from selenium.webdriver.chrome.service import Service
-            from selenium.webdriver.chrome.options import Options
-            from selenium.webdriver.common.by import By
-            from selenium.webdriver.support.ui import WebDriverWait
-            from selenium.webdriver.support import expected_conditions as EC
-            from selenium.webdriver.common.keys import Keys
-            import time
+            from linebot.v3.messaging import (Configuration, ApiClient, MessagingApi,
+                                              PushMessageRequest, TextMessage)
 
-            service = Service()
-            user_data_dir = os.path.join(os.getcwd(), "whatsapp_data")
-
-            # 確保目錄存在
-            os.makedirs(user_data_dir, exist_ok=True)
-
-            chrome_options = Options()
-            chrome_options.add_argument(f"--user-data-dir={user_data_dir}")
-            chrome_options.add_argument("--profile-directory=Default")
-            chrome_options.add_argument("--start-maximized")
-            chrome_options.add_argument("--disable-dev-shm-usage")
-            chrome_options.add_argument("--no-sandbox")
-            chrome_options.add_argument("--disable-extensions")
-            chrome_options.add_argument("--no-first-run")
-            chrome_options.add_argument("--no-default-browser-check")
-            chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
-            chrome_options.add_experimental_option('useAutomationExtension', False)
-
-            driver = webdriver.Chrome(service=service, options=chrome_options)
-
-            try:
-                print("正在打開 WhatsApp Web...")
-                driver.get("https://web.whatsapp.com")
-                print("等待 WhatsApp Web 載入中...")
-                time.sleep(20)  # 增加等待時間
-
-                encoded_message = urllib.parse.quote(message)
-                url = f"https://web.whatsapp.com/send?phone={phone}&text={encoded_message}"
-                print(f"正在打開聊天: {phone}")
-                driver.get(url)
-                time.sleep(15)  # 增加等待時間
-
-                wait = WebDriverWait(driver, 60)
-                print("等待聊天界面載入...")
-                wait.until(EC.presence_of_element_located((By.ID, "side")))
-                print("聊天界面已加載")
-                time.sleep(3)
-
-                # 多重回退策略嘗試發送
-                print("嘗試發送訊息...")
-
-                for attempt in range(5):
-                    try:
-                        print(f"  方法1: 尋找 data-tab='9'...")
-                        input_box = driver.find_element(By.XPATH, '//div[@contenteditable="true"][@data-tab="9"]')
-                        input_box.send_keys(Keys.ENTER)
-                        print("  ✓ 訊息已發送 (方法1)")
-                        time.sleep(2)
-                        return
-                    except Exception as e:
-                        time.sleep(2)
-
-                for attempt in range(5):
-                    try:
-                        print(f"  方法2: 尋找 data-tab='1'...")
-                        input_box = driver.find_element(By.XPATH, '//div[@contenteditable="true"][@data-tab="1"]')
-                        input_box.send_keys(Keys.ENTER)
-                        print("  ✓ 訊息已發送 (方法2)")
-                        time.sleep(2)
-                        return
-                    except Exception as e:
-                        time.sleep(2)
-
-                for attempt in range(5):
-                    try:
-                        print(f"  方法3: 尋找 footer contenteditable...")
-                        input_box = driver.find_element(By.CSS_SELECTOR, "footer div[contenteditable='true']")
-                        input_box.send_keys(Keys.ENTER)
-                        print("  ✓ 訊息已發送 (方法3)")
-                        time.sleep(2)
-                        return
-                    except Exception as e:
-                        time.sleep(2)
-
-                try:
-                    print("  方法4: 尋找發送按鈕 (data-testid)...")
-                    buttons = driver.find_elements(By.TAG_NAME, "button")
-                    for btn in buttons:
-                        try:
-                            data_testid = btn.get_attribute("data-testid")
-                            if data_testid and "send" in data_testid.lower():
-                                btn.click()
-                                print("  ✓ 訊息已發送 (方法4)")
-                                time.sleep(2)
-                                return
-                        except:
-                            continue
-                except Exception as e:
-                    pass
-
-                try:
-                    print("  方法5: 尋找發送按鈕 (data-icon)...")
-                    send_button = driver.find_element(By.XPATH, "//span[@data-icon='send']/parent::button")
-                    send_button.click()
-                    print("  ✓ 訊息已發送 (方法5)")
-                    time.sleep(2)
-                    return
-                except Exception as e:
-                    print(f"  ✗ 無法找到發送按鈕: {e}")
-
-            finally:
-                time.sleep(3)
-                driver.quit()
-
+            configuration = Configuration(access_token=os.getenv('LINE_CHANNEL_ACCESS_TOKEN'))
+            with ApiClient(configuration) as api_client:
+                line_bot_api = MessagingApi(api_client)
+                line_bot_api.push_message(
+                    PushMessageRequest(
+                        to=user_id,
+                        messages=[TextMessage(text=message)]
+                    )
+                )
+            print(f"✓ LINE 訊息已發送給 {user_id}")
         except Exception as e:
             import traceback
-            print(f"初始 WhatsApp 發送錯誤: {e}")
+            print(f"✗ LINE 發送錯誤: {e}")
             print(traceback.format_exc())
 
+    def send_line_initial(self, message):
+        recipients = self.get_selected_recipients()
+        if not recipients:
+            print("✗ 請選擇至少一個接收對象")
+            return
+
+        for recipient in recipients:
+            self.send_line_message(recipient, message)
+
     def start_countdown(self):
-        phone = self.get_selected_phone()
+        recipients = self.get_selected_recipients()
+        if not recipients:
+            print("✗ 請選擇至少一個接收對象")
+            return
 
-        tz_name = list(TIMEZONES.keys())[self.tz_combo.currentIndex()]
-        tz_value = TIMEZONES[tz_name]
+        # Parse timezone
+        tz_str = self.tz_input.text().strip()
+        if not tz_str:
+            print("✗ 請輸入時區")
+            return
 
-        from zoneinfo import ZoneInfo
-        date_str = self.date_combo.currentText()
-        year, month, day = map(int, date_str.split('-'))
-        hour = self.hour_combo.currentIndex()
-        minute = self.minute_combo.currentIndex()
+        tz_info = self.parse_timezone(tz_str)
+        if tz_info is None:
+            print(f"✗ 無效的時區: {tz_str}")
+            print("  支援格式: CDT, EST, UTC-3, Asia/Taipei, 等...")
+            return
 
-        target_tz = ZoneInfo(tz_value)
-        target_dt = datetime(year, month, day, hour, minute, 0, tzinfo=target_tz)
+        # Parse datetime (10-digit format)
+        datetime_str = self.datetime_input.text().strip()
+        target_dt = self.parse_datetime_10digit(datetime_str, tz_info)
+        if target_dt is None:
+            print(f"✗ 無效的日期時間格式: {datetime_str}")
+            print("  正確格式: 10位數 (如: 2605201722 => 2026/05/20 17:22)")
+            return
+
         self.target_time = int(target_dt.timestamp() * 1000)
 
         # 計算預計發送時間
         notify_times = self.calculate_notify_times()
 
-        # 發送預計時間通知並打開WhatsApp
+        # 發送預計時間通知
         message = self.message_input.text().strip() or "倒數計時"
-        self.send_whatsapp_initial(f"【預計通知時間】{message}\n{notify_times}")
+        self.send_line_initial(f"【預計通知時間】{message}\n{notify_times}")
 
         self.start_btn.setText("倒數中...")
         self.start_btn.setEnabled(False)
-        self.last_notification_time = 0
-        self.notification_count = 0
         self.sent_notifications.clear()
 
-        # 更新TPE時間顯示
-        from zoneinfo import ZoneInfo
-        tpe_tz = ZoneInfo("Asia/Taipei")
-        target_dt_utc = datetime.fromtimestamp(self.target_time / 1000, tz=ZoneInfo("UTC"))
-        target_dt_tpe = target_dt_utc.astimezone(tpe_tz)
-        tpe_time_str = target_dt_tpe.strftime("%Y年%m月%d日 %H:%M:%S")
-        self.tpe_time_display.setText(f"TPE時間: {tpe_time_str}")
+        # 更新時間顯示
+        tz_display = tz_str if len(tz_str) <= 15 else tz_str[:12] + "..."
+        time_str = target_dt.strftime("%Y年%m月%d日 %H:%M:%S")
+        self.tpe_time_display.setText(f"{tz_display}: {time_str}")
 
         self.timer.start(100)
 
@@ -354,131 +293,12 @@ class CountdownWindow(QWidget):
         self.tpe_time_display.setText("")
         self.start_btn.setText("開始倒數")
         self.start_btn.setEnabled(True)
-        self.last_notification_time = 0
-        self.notification_count = 0
         self.sent_notifications.clear()
 
-    def send_whatsapp_thread(self, phone, message):
-        import os
-        try:
-            from selenium import webdriver
-            from selenium.webdriver.chrome.service import Service
-            from selenium.webdriver.chrome.options import Options
-            from selenium.webdriver.common.by import By
-            from selenium.webdriver.support.ui import WebDriverWait
-            from selenium.webdriver.support import expected_conditions as EC
-            from selenium.webdriver.common.keys import Keys
-            import time
-
-            service = Service()
-            user_data_dir = os.path.join(os.getcwd(), "whatsapp_data")
-
-            # 確保目錄存在
-            os.makedirs(user_data_dir, exist_ok=True)
-
-            chrome_options = Options()
-            chrome_options.add_argument(f"--user-data-dir={user_data_dir}")
-            chrome_options.add_argument("--profile-directory=Default")
-            chrome_options.add_argument("--start-maximized")
-            chrome_options.add_argument("--disable-dev-shm-usage")
-            chrome_options.add_argument("--no-sandbox")
-            chrome_options.add_argument("--disable-extensions")
-            chrome_options.add_argument("--no-first-run")
-            chrome_options.add_argument("--no-default-browser-check")
-            chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
-            chrome_options.add_experimental_option('useAutomationExtension', False)
-            
-            driver = webdriver.Chrome(service=service, options=chrome_options)
-            
-            try:
-                print("打開 WhatsApp Web...")
-                driver.get("https://web.whatsapp.com")
-                print("等待 WhatsApp Web 載入...")
-                time.sleep(15)
-
-                encoded_message = urllib.parse.quote(message)
-                url = f"https://web.whatsapp.com/send?phone={phone}&text={encoded_message}"
-                print(f"打開聊天窗口: {phone}")
-                driver.get(url)
-                print("等待聊天界面...")
-                time.sleep(12)
-
-                wait = WebDriverWait(driver, 60)
-
-                wait.until(EC.presence_of_element_located((By.ID, "side")))
-                print("聊天界面已加載，開始發送訊息...")
-                time.sleep(3)
-
-                for attempt in range(5):
-                    try:
-                        input_box = driver.find_element(By.XPATH, '//div[@contenteditable="true"][@data-tab="9"]')
-                        input_box.send_keys(Keys.ENTER)
-                        print("✓ 訊息已發送 (方法1)")
-                        time.sleep(2)
-                        return
-                    except:
-                        time.sleep(2)
-                
-                for attempt in range(5):
-                    try:
-                        input_box = driver.find_element(By.XPATH, '//div[@contenteditable="true"][@data-tab="1"]')
-                        input_box.send_keys(Keys.ENTER)
-                        print("✓ 訊息已發送 (方法2)")
-                        time.sleep(2)
-                        return
-                    except:
-                        time.sleep(2)
-
-                for attempt in range(5):
-                    try:
-                        input_box = driver.find_element(By.CSS_SELECTOR, "footer div[contenteditable='true']")
-                        input_box.send_keys(Keys.ENTER)
-                        print("✓ 訊息已發送 (方法3)")
-                        time.sleep(2)
-                        return
-                    except:
-                        time.sleep(2)
-
-                try:
-                    print("尋找發送按鈕...")
-                    buttons = driver.find_elements(By.TAG_NAME, "button")
-                    for btn in buttons:
-                        try:
-                            data_testid = btn.get_attribute("data-testid")
-                            if data_testid and "send" in data_testid.lower():
-                                btn.click()
-                                print("✓ 訊息已發送 (方法4)")
-                                time.sleep(2)
-                                return
-                        except:
-                            continue
-                except Exception as e:
-                    pass
-
-                try:
-                    send_button = driver.find_element(By.XPATH, "//span[@data-icon='send']/parent::button")
-                    send_button.click()
-                    print("✓ 訊息已發送 (方法5)")
-                    time.sleep(2)
-                    return
-                except Exception as e:
-                    print(f"✗ 無法找到發送按鈕: {e}")
-
-            finally:
-                time.sleep(3)
-                driver.quit()
-
-        except Exception as e:
-            import traceback
-            print(f"WhatsApp 發送錯誤: {e}")
-            print(traceback.format_exc())
-
-    def send_whatsapp(self, message):
-        phone = self.get_selected_phone()
-        phone = phone.replace("+", "").replace(" ", "").replace("-", "")
-        thread = threading.Thread(target=self.send_whatsapp_thread, args=(phone, message))
-        thread.daemon = True
-        thread.start()
+    def send_line_to_selected(self, message):
+        recipients = self.get_selected_recipients()
+        for recipient in recipients:
+            self.send_line_message(recipient, message)
 
     def update_countdown(self):
         now_ms = int(datetime.now().timestamp() * 1000)
@@ -491,7 +311,7 @@ class CountdownWindow(QWidget):
 
             # 計算目前應該在第幾次通知
             current_notification_num = int(elapsed / (10 * 60 * 1000)) + 1
-            current_notification_num = min(current_notification_num, 15)  # 最多15次
+            current_notification_num = min(current_notification_num, 15)
 
             # 檢查這個通知編號是否已經發送過
             if current_notification_num not in self.sent_notifications and current_notification_num <= 15:
@@ -500,11 +320,11 @@ class CountdownWindow(QWidget):
                 now_str = QDateTime.currentDateTime().toString("HH:mm:ss")
 
                 if current_notification_num == 1:
-                    self.send_whatsapp(f"【時間到】{message} (第 1/15 次) ({now_str})")
+                    self.send_line_to_selected(f"【時間到】{message} (第 1/15 次) ({now_str})")
                 else:
-                    self.send_whatsapp(f"【提醒】{message} (第 {current_notification_num}/15 次) ({now_str})")
+                    self.send_line_to_selected(f"【提醒】{message} (第 {current_notification_num}/15 次) ({now_str})")
 
-            # 15次通知後停止（共140分鐘 = 2小時20分）
+            # 15次通知後停止
             if current_notification_num >= 15:
                 self.timer.stop()
                 self.start_btn.setText("開始倒數")
@@ -513,14 +333,12 @@ class CountdownWindow(QWidget):
 
         # 顯示倒數或正數
         if diff >= 0:
-            # 倒數
             days = diff // (1000 * 60 * 60 * 24)
             hours = (diff % (1000 * 60 * 60 * 24)) // (1000 * 60 * 60)
             minutes = (diff % (1000 * 60 * 60)) // (1000 * 60)
             seconds = (diff % (1000 * 60)) // 1000
             self.display.setText(f"{int(days):02d}天 {int(hours):02d}:{int(minutes):02d}:{int(seconds):02d}")
         else:
-            # 正數（已過時間）
             elapsed = -diff
             days = elapsed // (1000 * 60 * 60 * 24)
             hours = (elapsed % (1000 * 60 * 60 * 24)) // (1000 * 60 * 60)
