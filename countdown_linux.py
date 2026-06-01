@@ -10,7 +10,7 @@ from zoneinfo import ZoneInfo
 # LINE recipients configuration (user_id: display_name)
 LINE_RECIPIENTS = {
     "U62f156ab5afd221576ea85039ac4ed21": "Evan",
-    "U2345678901bcdef2345678901bcdef1": "Person 2",
+    "U40c729ba870837553332a7179e97f854": "Cheryl",
     "Ca1234567890abcdef1234567890abc": "Group Chat 1",
 }
 
@@ -105,18 +105,28 @@ class CommandLineCountdown:
 
     def calculate_notify_times(self):
         """Calculate notification times"""
-        target_dt = datetime.fromtimestamp(self.target_time / 1000)
+        # 使用保存的 target_dt（已包含正確的時區信息）
+        target_dt = self.target_dt
 
-        notify_times = []
-        for i in range(15):
-            notify_time = target_dt + timedelta(minutes=i*10)
-            notify_times.append(notify_time)
+        # 計算Taipei time (UTC+8)
+        taipei_tz = ZoneInfo('Asia/Taipei')
+        target_dt_taipei = target_dt.astimezone(taipei_tz)
 
-        times_str = f"⏰ 時間到開始提醒: {target_dt.strftime('%H:%M')}\n"
-        times_str += f"⏰ 之後每10分鐘提醒一次 (共15次):\n"
-        for i, t in enumerate(notify_times, 1):
-            times_str += f"  {i:2d}. {t.strftime('%H:%M')}\n"
-        times_str += f"  (持續到 {notify_times[-1].strftime('%H:%M')}，共2小時20分)"
+        # 格式化時區顯示名稱
+        tz_display = self.tz_str.upper()
+        if tz_display in TZ_MAP:
+            # 如果是縮寫，顯示縮寫
+            pass
+        elif tz_display.startswith('UTC'):
+            # 保持 UTC±X 格式
+            pass
+        else:
+            # 對於 IANA timezone，提取最後一部分
+            tz_display = tz_display.split('/')[-1]
+
+        times_str = f"⏰ 倒數開始時間\n"
+        times_str += f"{target_dt.strftime('%m-%d')} {tz_display}: {target_dt.strftime('%H:%M')}\n"
+        times_str += f"{target_dt_taipei.strftime('%m-%d')} Taipei time: {target_dt_taipei.strftime('%H:%M')}"
 
         return times_str
 
@@ -238,7 +248,7 @@ class CommandLineCountdown:
                     current_notification_num = min(current_notification_num, 15)
 
                     # Send notification if not sent yet
-                    if current_notification_num not in self.sent_notifications and current_notification_num <= 15:
+                    if current_notification_num not in self.sent_notifications:
                         self.sent_notifications.add(current_notification_num)
                         now_str = datetime.now().strftime("%H:%M:%S")
 
@@ -251,7 +261,7 @@ class CommandLineCountdown:
                         print(f"[{now_str}] {msg}")
 
                     # Stop after 15 notifications
-                    if current_notification_num >= 15:
+                    if current_notification_num >= 15 and 15 in self.sent_notifications:
                         print("\n✓ 倒數完成！已發送全部15次通知")
                         self.running = False
                         break

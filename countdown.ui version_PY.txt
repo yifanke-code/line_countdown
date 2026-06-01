@@ -190,20 +190,21 @@ class CountdownWindow(QWidget):
         except:
             return None
 
-    def calculate_notify_times(self):
-        target_dt = datetime.fromtimestamp(self.target_time / 1000)
+    def calculate_notify_times(self, target_dt, tz_display):
+        # 計算Taipei time (UTC+8)
+        taipei_tz = ZoneInfo('Asia/Taipei')
+        target_dt_taipei = target_dt.astimezone(taipei_tz)
+        end_dt = target_dt + timedelta(minutes=140)
+        end_dt_taipei = end_dt.astimezone(taipei_tz)
 
-        # 時間到開始，每10分鐘通知一次，共15次
-        notify_times = []
-        for i in range(15):
-            notify_time = target_dt + timedelta(minutes=i*10)
-            notify_times.append(notify_time)
-
-        times_str = f"⏰ 時間到開始提醒: {target_dt.strftime('%H:%M')}\n"
-        times_str += f"⏰ 之後每10分鐘提醒一次 (共15次):\n"
-        for i, t in enumerate(notify_times, 1):
-            times_str += f"  {i:2d}. {t.strftime('%H:%M')}\n"
-        times_str += f"  (持續到 {notify_times[-1].strftime('%H:%M')}，共2小時20分)"
+        times_str = f"⏰ 倒數時間段\n"
+        times_str += f"時區: {tz_display}\n"
+        times_str += f"開始時間: {target_dt.strftime('%Y年%m月%d日 %H:%M')}\n"
+        times_str += f"結束時間: {end_dt.strftime('%Y年%m月%d日 %H:%M')}\n"
+        times_str += f"\nTaipei time (UTC+8)\n"
+        times_str += f"開始時間: {target_dt_taipei.strftime('%Y年%m月%d日 %H:%M')}\n"
+        times_str += f"結束時間: {end_dt_taipei.strftime('%Y年%m月%d日 %H:%M')}\n"
+        times_str += f"\n通知頻率: 第1次立即發送，之後每10分鐘發送一次，共15次"
 
         return times_str
 
@@ -270,7 +271,8 @@ class CountdownWindow(QWidget):
         self.target_time = int(target_dt.timestamp() * 1000)
 
         # 計算預計發送時間
-        notify_times = self.calculate_notify_times()
+        tz_display = tz_str if len(tz_str) <= 15 else tz_str[:12] + "..."
+        notify_times = self.calculate_notify_times(target_dt, tz_display)
 
         # 發送預計時間通知
         message = self.message_input.text().strip() or "倒數計時"
@@ -314,7 +316,7 @@ class CountdownWindow(QWidget):
             current_notification_num = min(current_notification_num, 15)
 
             # 檢查這個通知編號是否已經發送過
-            if current_notification_num not in self.sent_notifications and current_notification_num <= 15:
+            if current_notification_num not in self.sent_notifications:
                 self.sent_notifications.add(current_notification_num)
                 message = self.message_input.text().strip() or "倒數計時"
                 now_str = QDateTime.currentDateTime().toString("HH:mm:ss")
@@ -325,7 +327,7 @@ class CountdownWindow(QWidget):
                     self.send_line_to_selected(f"【提醒】{message} (第 {current_notification_num}/15 次) ({now_str})")
 
             # 15次通知後停止
-            if current_notification_num >= 15:
+            if current_notification_num >= 15 and 15 in self.sent_notifications:
                 self.timer.stop()
                 self.start_btn.setText("開始倒數")
                 self.start_btn.setEnabled(True)
