@@ -239,13 +239,14 @@ class CommandLineCountdown:
                 diff = self.target_time - now_ms
                 current_time = int(datetime.now().timestamp() * 1000)
 
-                # Handle notifications after target time
-                if diff <= 0:
-                    elapsed = current_time - self.target_time
+                # Handle notifications (starting 10 minutes before target time)
+                if diff <= 10 * 60 * 1000:
+                    # Calculate elapsed time from 10 minutes before target
+                    elapsed = current_time - (self.target_time - 10 * 60 * 1000)
 
                     # Calculate current notification number
                     current_notification_num = int(elapsed / (10 * 60 * 1000)) + 1
-                    current_notification_num = min(current_notification_num, 15)
+                    current_notification_num = min(current_notification_num, 10)
 
                     # Send notification if not sent yet
                     if current_notification_num not in self.sent_notifications:
@@ -253,16 +254,18 @@ class CommandLineCountdown:
                         now_str = datetime.now().strftime("%H:%M:%S")
 
                         if current_notification_num == 1:
-                            msg = f"【時間到】{self.message} (第 1/15 次) ({now_str})"
+                            msg = f"【預告】{self.message} (第 1/10 次) ({now_str})"
+                        elif current_notification_num == 2:
+                            msg = f"【時間到】{self.message} (第 2/10 次) ({now_str})"
                         else:
-                            msg = f"【提醒】{self.message} (第 {current_notification_num}/15 次) ({now_str})"
+                            msg = f"【提醒】{self.message} (第 {current_notification_num}/10 次) ({now_str})"
 
                         self.send_line_to_recipients(self.recipients, msg)
                         print(f"[{now_str}] {msg}")
 
-                    # Stop after 15 notifications
-                    if current_notification_num >= 15 and 15 in self.sent_notifications:
-                        print("\n✓ 倒數完成！已發送全部15次通知")
+                    # Stop after 10 notifications
+                    if current_notification_num >= 10 and 10 in self.sent_notifications:
+                        print("\n✓ 倒數完成！已發送全部10次通知")
                         self.running = False
                         break
 
