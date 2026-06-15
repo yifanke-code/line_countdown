@@ -1,2 +1,2 @@
 set LINE_CHANNEL_ACCESS_TOKEN=N6NadMdh03bUSnfiJbS5jzAwHjwF+zD9t47Whgwlo0dj5vhmLF15baIWsoST6WuO/KI+vz6SACqkeqxC4mK2LY6JRHLRSc6kOel1uWbgGvniyVwJOUyKvNrtBuGcbMUAR0y7Rx7W16TJQgJVB/VzDgdB04t89/1O/w1cDnyilFU=
-py countdown.py
+py countdown_linux.py
