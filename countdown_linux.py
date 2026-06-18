@@ -44,6 +44,26 @@ class CommandLineCountdown:
         """Parse timezone string (CDT, UTC-3, Asia/Taipei, etc.)"""
         tz_str = tz_str.strip().upper()
 
+        # Handle fixed offset abbreviations (to avoid DST ambiguity)
+        if tz_str == 'CST':
+            from datetime import timezone
+            return timezone(timedelta(hours=-6))
+        if tz_str == 'CDT':
+            from datetime import timezone
+            return timezone(timedelta(hours=-5))
+        if tz_str == 'EST':
+            from datetime import timezone
+            return timezone(timedelta(hours=-5))
+        if tz_str == 'EDT':
+            from datetime import timezone
+            return timezone(timedelta(hours=-4))
+        if tz_str == 'PST':
+            from datetime import timezone
+            return timezone(timedelta(hours=-8))
+        if tz_str == 'PDT':
+            from datetime import timezone
+            return timezone(timedelta(hours=-7))
+
         # Check abbreviation mapping
         if tz_str in TZ_MAP:
             return ZoneInfo(TZ_MAP[tz_str])
