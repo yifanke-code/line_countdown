@@ -15,19 +15,54 @@ LINE_RECIPIENTS = {
 }
 
 # Timezone abbreviation mapping
+# Priority: Western/European zones when there are name conflicts (e.g., CST)
 TZ_MAP = {
-    'CDT': 'America/Chicago',
-    'CST': 'America/Chicago',
-    'EDT': 'America/New_York',
-    'EST': 'America/New_York',
-    'PDT': 'America/Los_Angeles',
-    'PST': 'America/Los_Angeles',
-    'GMT': 'UTC',
+    # North America - Eastern
+    'EST': 'America/New_York',      # Eastern Standard Time (UTC-5)
+    'EDT': 'America/New_York',      # Eastern Daylight Time (UTC-4)
+
+    # North America - Central
+    'CST': 'America/Chicago',       # Central Standard Time (UTC-6) - prioritized over China
+    'CDT': 'America/Chicago',       # Central Daylight Time (UTC-5)
+
+    # North America - Mountain
+    'MST': 'America/Denver',        # Mountain Standard Time (UTC-7)
+    'MDT': 'America/Denver',        # Mountain Daylight Time (UTC-6)
+
+    # North America - Pacific
+    'PST': 'America/Los_Angeles',   # Pacific Standard Time (UTC-8)
+    'PDT': 'America/Los_Angeles',   # Pacific Daylight Time (UTC-7)
+
+    # Europe
+    'GMT': 'Europe/London',         # Greenwich Mean Time (UTC+0)
+    'BST': 'Europe/London',         # British Summer Time (UTC+1)
+    'CET': 'Europe/Paris',          # Central European Time (UTC+1)
+    'CEST': 'Europe/Paris',         # Central European Summer Time (UTC+2)
+    'WET': 'Europe/Lisbon',         # Western European Time (UTC+0)
+    'WEST': 'Europe/Lisbon',        # Western European Summer Time (UTC+1)
+    'EET': 'Europe/Athens',         # Eastern European Time (UTC+2)
+    'EEST': 'Europe/Athens',        # Eastern European Summer Time (UTC+3)
+
+    # Asia-Pacific
+    'JST': 'Asia/Tokyo',            # Japan Standard Time (UTC+9)
+    'KST': 'Asia/Seoul',            # Korea Standard Time (UTC+9)
+    'SGT': 'Asia/Singapore',        # Singapore Time (UTC+8)
+    'HKT': 'Asia/Hong_Kong',        # Hong Kong Time (UTC+8)
+    'IST': 'Asia/Kolkata',          # Indian Standard Time (UTC+5:30)
+    'PKT': 'Asia/Karachi',          # Pakistan Standard Time (UTC+5)
+    'BDT': 'Asia/Dhaka',            # Bangladesh Daylight Time (UTC+6)
+    'THA': 'Asia/Bangkok',          # Thailand (UTC+7)
+    'MYT': 'Asia/Kuala_Lumpur',     # Malaysia Time (UTC+8)
+    'PHT': 'Asia/Manila',           # Philippine Time (UTC+8)
+    'AEST': 'Australia/Sydney',     # Australian Eastern Standard Time (UTC+10)
+    'AEDT': 'Australia/Sydney',     # Australian Eastern Daylight Time (UTC+11)
+    'AWST': 'Australia/Perth',      # Australian Western Standard Time (UTC+8)
+    'ACST': 'Australia/Adelaide',   # Australian Central Standard Time (UTC+9:30)
+    'NZST': 'Pacific/Auckland',     # New Zealand Standard Time (UTC+12)
+    'NZDT': 'Pacific/Auckland',     # New Zealand Daylight Time (UTC+13)
+
+    # UTC variants
     'UTC': 'UTC',
-    'JST': 'Asia/Tokyo',
-    'IST': 'Asia/Kolkata',
-    'SGT': 'Asia/Singapore',
-    'HKT': 'Asia/Hong_Kong',
 }
 
 class CommandLineCountdown:
@@ -44,27 +79,7 @@ class CommandLineCountdown:
         """Parse timezone string (CDT, UTC-3, Asia/Taipei, etc.)"""
         tz_str = tz_str.strip().upper()
 
-        # Handle fixed offset abbreviations (to avoid DST ambiguity)
-        if tz_str == 'CST':
-            from datetime import timezone
-            return timezone(timedelta(hours=-6))
-        if tz_str == 'CDT':
-            from datetime import timezone
-            return timezone(timedelta(hours=-5))
-        if tz_str == 'EST':
-            from datetime import timezone
-            return timezone(timedelta(hours=-5))
-        if tz_str == 'EDT':
-            from datetime import timezone
-            return timezone(timedelta(hours=-4))
-        if tz_str == 'PST':
-            from datetime import timezone
-            return timezone(timedelta(hours=-8))
-        if tz_str == 'PDT':
-            from datetime import timezone
-            return timezone(timedelta(hours=-7))
-
-        # Check abbreviation mapping
+        # Check abbreviation mapping (includes common timezone abbreviations)
         if tz_str in TZ_MAP:
             return ZoneInfo(TZ_MAP[tz_str])
 
@@ -83,7 +98,7 @@ class CommandLineCountdown:
                     return None
             return ZoneInfo('UTC')
 
-        # Try as IANA timezone
+        # Try as IANA timezone (e.g., Asia/Taipei)
         try:
             return ZoneInfo(tz_str)
         except:
@@ -186,7 +201,12 @@ class CommandLineCountdown:
         tz_info = self.parse_timezone(self.tz_str)
         if tz_info is None:
             print(f"✗ 錯誤: 無效的時區 '{self.tz_str}'")
-            print("  支援格式: CDT, EST, UTC-3, Asia/Taipei, 等...")
+            print("  支援格式:")
+            print("    • 北美: EST, EDT, CST, CDT, MST, MDT, PST, PDT")
+            print("    • 歐洲: GMT, BST, CET, CEST, WET, EET")
+            print("    • 亞太: JST, KST, SGT, HKT, IST, AEST, NZST")
+            print("    • UTC: UTC, UTC+8, UTC-5, 等...")
+            print("    • IANA: Asia/Taipei, Europe/London, 等...")
             return False
 
         # Parse datetime
@@ -316,7 +336,7 @@ def main():
     )
 
     parser.add_argument('-tz', '--timezone', required=True, dest='timezone',
-                        help='時區 (如: CDT, EST, UTC+8, Asia/Taipei)')
+                        help='時區 (如: CDT, EST, JST, UTC+8, Asia/Taipei) - 西方時區優先')
     parser.add_argument('-dt', '--datetime', required=True, dest='datetime',
                         help='日期時間 (10位數: YYMMDDHHMI, 如: 2605201722)')
     parser.add_argument('-m', '--message', dest='message',

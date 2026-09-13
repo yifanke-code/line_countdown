@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Countdown Timer - LINE Notifications</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 28px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+            font-family: inherit;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .datetime-hint {
+            font-size: 12px;
+            color: #999;
+            margin-top: 4px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            margin-right: 8px;
+            accent-color: #667eea;
+        }
+
+        .checkbox-item label {
+            margin: 0;
+            cursor: pointer;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 32px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .log-section {
+            margin-top: 32px;
+            padding-top: 32px;
+            border-top: 2px solid #e0e0e0;
+        }
+
+        .log-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .log-header h2 {
+            font-size: 16px;
+            color: #333;
+        }
+
+        .refresh-btn {
+            padding: 6px 12px;
+            font-size: 12px;
+            background: #f0f0f0;
+            color: #666;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .refresh-btn:hover {
+            background: #e0e0e0;
+        }
+
+        .log-viewer {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: #333;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+            line-height: 1.4;
+        }
+
+        .status-message {
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+
+        .status-message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+
+        .status-message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #667eea;
+            font-size: 14px;
+            margin-top: 12px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⏰ Countdown Timer</h1>
+
+        <div id="statusMessage" class="status-message"></div>
+
+        <form id="countdownForm">
+            <!-- Timezone -->
+            <div class="form-group">
+                <label for="timezone">Timezone <span style="color: #e74c3c;">*</span></label>
+                <select id="timezone" name="timezone" required>
+                    <option value="">-- Select a timezone --</option>
+                    <optgroup label="North America">
+                        <option value="EST">EST (Eastern Standard Time)</option>
+                        <option value="EDT">EDT (Eastern Daylight Time)</option>
+                        <option value="CST">CST (Central Standard Time)</option>
+                        <option value="CDT">CDT (Central Daylight Time)</option>
+                        <option value="MST">MST (Mountain Standard Time)</option>
+                        <option value="MDT">MDT (Mountain Daylight Time)</option>
+                        <option value="PST">PST (Pacific Standard Time)</option>
+                        <option value="PDT">PDT (Pacific Daylight Time)</option>
+                    </optgroup>
+                    <optgroup label="Europe">
+                        <option value="GMT">GMT (Greenwich Mean Time)</option>
+                        <option value="BST">BST (British Summer Time)</option>
+                        <option value="CET">CET (Central European Time)</option>
+                        <option value="CEST">CEST (Central European Summer Time)</option>
+                        <option value="WET">WET (Western European Time)</option>
+                        <option value="WEST">WEST (Western European Summer Time)</option>
+                        <option value="EET">EET (Eastern European Time)</option>
+                        <option value="EEST">EEST (Eastern European Summer Time)</option>
+                    </optgroup>
+                    <optgroup label="Asia-Pacific">
+                        <option value="JST">JST (Japan Standard Time)</option>
+                        <option value="KST">KST (Korea Standard Time)</option>
+                        <option value="SGT">SGT (Singapore Time)</option>
+                        <option value="HKT">HKT (Hong Kong Time)</option>
+                        <option value="IST">IST (Indian Standard Time)</option>
+                        <option value="PKT">PKT (Pakistan Standard Time)</option>
+                        <option value="BDT">BDT (Bangladesh Daylight Time)</option>
+                        <option value="THA">THA (Thailand)</option>
+                        <option value="MYT">MYT (Malaysia Time)</option>
+                        <option value="PHT">PHT (Philippine Time)</option>
+                        <option value="AEST">AEST (Australian Eastern Standard Time)</option>
+                        <option value="AEDT">AEDT (Australian Eastern Daylight Time)</option>
+                        <option value="AWST">AWST (Australian Western Standard Time)</option>
+                        <option value="ACST">ACST (Australian Central Standard Time)</option>
+                        <option value="NZST">NZST (New Zealand Standard Time)</option>
+                        <option value="NZDT">NZDT (New Zealand Daylight Time)</option>
+                    </optgroup>
+                    <optgroup label="UTC Offsets">
+                        <option value="UTC">UTC</option>
+                        <option value="UTC+0">UTC+0</option>
+                        <option value="UTC+1">UTC+1</option>
+                        <option value="UTC+2">UTC+2</option>
+                        <option value="UTC+3">UTC+3</option>
+                        <option value="UTC+4">UTC+4</option>
+                        <option value="UTC+5">UTC+5</option>
+                        <option value="UTC+6">UTC+6</option>
+                        <option value="UTC+7">UTC+7</option>
+                        <option value="UTC+8">UTC+8</option>
+                        <option value="UTC+9">UTC+9</option>
+                        <option value="UTC+10">UTC+10</option>
+                        <option value="UTC+11">UTC+11</option>
+                        <option value="UTC+12">UTC+12</option>
+                        <option value="UTC-1">UTC-1</option>
+                        <option value="UTC-2">UTC-2</option>
+                        <option value="UTC-3">UTC-3</option>
+                        <option value="UTC-4">UTC-4</option>
+                        <option value="UTC-5">UTC-5</option>
+                        <option value="UTC-6">UTC-6</option>
+                        <option value="UTC-7">UTC-7</option>
+                        <option value="UTC-8">UTC-8</option>
+                        <option value="UTC-9">UTC-9</option>
+                        <option value="UTC-10">UTC-10</option>
+                        <option value="UTC-11">UTC-11</option>
+                        <option value="UTC-12">UTC-12</option>
+                    </optgroup>
+                    <optgroup label="IANA Timezones">
+                        <option value="Asia/Taipei">Asia/Taipei</option>
+                        <option value="Asia/Tokyo">Asia/Tokyo</option>
+                        <option value="Asia/Shanghai">Asia/Shanghai</option>
+                        <option value="Asia/Hong_Kong">Asia/Hong_Kong</option>
+                        <option value="America/New_York">America/New_York</option>
+                        <option value="America/Chicago">America/Chicago</option>
+                        <option value="America/Denver">America/Denver</option>
+                        <option value="America/Los_Angeles">America/Los_Angeles</option>
+                        <option value="Europe/London">Europe/London</option>
+                        <option value="Europe/Paris">Europe/Paris</option>
+                        <option value="Europe/Berlin">Europe/Berlin</option>
+                        <option value="Australia/Sydney">Australia/Sydney</option>
+                    </optgroup>
+                </select>
+            </div>
+
+            <!-- DateTime -->
+            <div class="form-group">
+                <label for="datetime">DateTime (YYMMDDHHMI) <span style="color: #e74c3c;">*</span></label>
+                <input type="text" id="datetime" name="datetime" placeholder="e.g., 2609092225" required>
+                <div class="datetime-hint">Format: 10 digits (YY=year, MM=month, DD=day, HH=hour, MI=minute)</div>
+            </div>
+
+            <!-- Message -->
+            <div class="form-group">
+                <label for="message">Message (Optional)</label>
+                <input type="text" id="message" name="message" placeholder="e.g., Airtags, Meeting, etc.">
+            </div>
+
+            <!-- Users -->
+            <div class="form-group">
+                <label>Recipients <span style="color: #e74c3c;">*</span></label>
+                <div class="checkbox-group">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="user-evan" name="users" value="Evan">
+                        <label for="user-evan">Evan</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="user-cheryl" name="users" value="Cheryl">
+                        <label for="user-cheryl">Cheryl</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="user-group" name="users" value="Group Chat 1">
+                        <label for="user-group">Group Chat 1</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="button-group">
+                <button type="submit" class="btn-primary" id="submitBtn">
+                    Start Countdown
+                </button>
+                <button type="reset" class="btn-secondary">
+                    Clear
+                </button>
+            </div>
+
+            <div class="loading" id="loading">
+                <span class="spinner"></span> Starting countdown...
+            </div>
+        </form>
+
+        <!-- Log Section -->
+        <div class="log-section">
+            <div class="log-header">
+                <h2>📋 Execution Log</h2>
+                <button class="refresh-btn" id="refreshBtn">Refresh Log</button>
+            </div>
+            <div class="log-viewer" id="logViewer">No log data yet</div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('countdownForm');
+        const statusMessage = document.getElementById('statusMessage');
+        const loadingSpinner = document.getElementById('loading');
+        const logViewer = document.getElementById('logViewer');
+        const refreshBtn = document.getElementById('refreshBtn');
+        const submitBtn = document.getElementById('submitBtn');
+
+        // Form submission
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Validate users
+            const selectedUsers = Array.from(document.querySelectorAll('input[name="users"]:checked')).map(el => el.value);
+            if (selectedUsers.length === 0) {
+                showStatus('At least one recipient must be selected', 'error');
+                return;
+            }
+
+            const formData = {
+                timezone: document.getElementById('timezone').value,
+                datetime: document.getElementById('datetime').value,
+                message: document.getElementById('message').value || 'countdown',
+                users: selectedUsers
+            };
+
+            loadingSpinner.classList.add('active');
+            submitBtn.disabled = true;
+
+            try {
+                const response = await fetch('/api/run', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showStatus(`✓ ${data.message}`, 'success');
+                    form.reset();
+                    // Auto-refresh log
+                    await new Promise(r => setTimeout(r, 1000));
+                    refreshLog();
+                } else {
+                    showStatus(`✗ ${data.error}`, 'error');
+                }
+            } catch (error) {
+                showStatus(`✗ Error: ${error.message}`, 'error');
+            } finally {
+                loadingSpinner.classList.remove('active');
+                submitBtn.disabled = false;
+            }
+        });
+
+        // Refresh log button
+        refreshBtn.addEventListener('click', refreshLog);
+
+        async function refreshLog() {
+            try {
+                const response = await fetch('/api/log');
+                const data = await response.json();
+
+                if (data.success) {
+                    logViewer.textContent = data.content || 'No log data yet';
+                    // Auto-scroll to bottom
+                    logViewer.scrollTop = logViewer.scrollHeight;
+                }
+            } catch (error) {
+                logViewer.textContent = `Error loading log: ${error.message}`;
+            }
+        }
+
+        function showStatus(message, type) {
+            statusMessage.textContent = message;
+            statusMessage.className = `status-message ${type}`;
+            setTimeout(() => {
+                statusMessage.className = 'status-message';
+            }, 5000);
+        }
+
+        // Only auto-refresh log when countdown is running (every 3 seconds instead of 2)
+        let autoRefreshInterval = null;
+        let isCountdownRunning = false;
+
+        function startAutoRefresh() {
+            if (!autoRefreshInterval) {
+                isCountdownRunning = true;
+                autoRefreshInterval = setInterval(refreshLog, 3000);
+            }
+        }
+
+        function stopAutoRefresh() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+                isCountdownRunning = false;
+            }
+        }
+
+        // Update form submission to control auto-refresh
+        const originalFormListener = form.addEventListener;
+        form.addEventListener('submit', function(e) {
+            startAutoRefresh();
+        });
+
+        // Don't load logs on initial page load - only when needed
+        // refreshLog() removed - user can click refresh button if needed
+    </script>
+</body>
+</html>
